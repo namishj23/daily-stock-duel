@@ -50,12 +50,12 @@ export function Header() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/signin">Sign In</Link>
-            </Button>
-            <Button variant="hero" size="sm" asChild>
-              <Link to="/signup">Get Started</Link>
-            </Button>
+            <Link to="/signin">
+              <Button variant="ghost" size="sm">Sign In</Button>
+            </Link>
+            <Link to="/signup">
+              <Button variant="hero" size="sm">Get Started</Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -86,12 +86,12 @@ export function Header() {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/50">
-                <Button variant="ghost" className="justify-start" asChild>
-                  <Link to="/signin" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-                </Button>
-                <Button variant="hero" asChild>
-                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
-                </Button>
+                <Link to="/signin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="justify-start w-full">Sign In</Button>
+                </Link>
+                <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="hero" className="w-full">Get Started</Button>
+                </Link>
               </div>
             </nav>
           </div>
