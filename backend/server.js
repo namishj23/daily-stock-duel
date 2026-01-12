@@ -1,26 +1,24 @@
 const express = require("express");
 const cors = require("cors");
 
+const userRoutes = require("./routes/user.routes");
+const predictionRoutes = require("./routes/prediction.routes");
+const resultRoutes = require("./routes/result.routes");
+
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
 app.use(express.json());
 
-// test route
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
-});
+app.use("/api/users", userRoutes);
+app.use("/api/predictions", predictionRoutes);
+app.use("/api/results", resultRoutes);
 
-// example API
-app.get("/api/stock", (req, res) => {
-  res.json({
-    stock: "TATA MOTORS",
-    price: 812,
-    trend: "UP"
-  });
+app.get("/", (req, res) => {
+  res.send("Daily Stock Duel Backend 🚀");
 });
 
 app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Backend running at http://localhost:${PORT}`);
 });
