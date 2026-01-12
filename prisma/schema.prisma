@@ -1,0 +1,51 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  ageConfirmed Boolean
+  createdAt    DateTime @default(now())
+
+  predictions DailyPrediction[]
+  wins        Int               @default(0)
+
+  wonResults DailyResult[] @relation("WinnerResults")
+}
+
+model DailyPrediction {
+  id            String    @id @default(cuid())
+  userId        String
+  stock         String
+  direction     Direction
+  justification String
+  entryFeePaid  Boolean   @default(false)
+  locked        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  contestDate   DateTime
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, contestDate])
+}
+
+model DailyResult {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  winnerId  String
+  profitPct Float
+
+  winner User @relation("WinnerResults", fields: [winnerId], references: [id])
+}
+
+enum Direction {
+  UP
+  DOWN
+}
