@@ -1,51 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
+////////////////////////
+// USER & AUTH MODELS
+////////////////////////
 
 model User {
   id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  ageConfirmed Boolean
+  name         String?
+  email        String?  @unique
+  image        String?
+  ageConfirmed Boolean  @default(false)
   createdAt    DateTime @default(now())
 
-  predictions DailyPrediction[]
-  wins        Int               @default(0)
+  accounts Account[]
+  sessions Session[]
 
-  wonResults DailyResult[] @relation("WinnerResults")
+  predictions  DailyPrediction[]
+  rewards      Reward[]
+  dailyResults DailyResult[]
+
+  @@map("users")
 }
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+////////////////////////
+// STOCK MASTER
+////////////////////////
+
+model Stock {
+  id       String  @id @default(cuid())
+  symbol   String  @unique // e.g. HDFCBANK
+  name     String // HDFC Bank Ltd
+  isActive Boolean @default(true)
+
+  predictions   DailyPrediction[]
+  aipredictions AIPrediction[]
+
+  @@map("stocks")
+}
+
+////////////////////////
+// DAILY USER PREDICTION
+////////////////////////
 
 model DailyPrediction {
   id            String    @id @default(cuid())
   userId        String
-  stock         String
+  stockId       String
   direction     Direction
   justification String
-  entryFeePaid  Boolean   @default(false)
-  locked        Boolean   @default(false)
-  createdAt     DateTime  @default(now())
+  submittedAt   DateTime  @default(now())
   contestDate   DateTime
 
-  user User @relation(fields: [userId], references: [id])
+  // Payment & lock state
+  lockedAt      DateTime?
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentId     String?
 
-  @@unique([userId, contestDate])
+  // Market evaluation
+  entryPrice    Float?
+  exitPrice     Float?
+  percentChange Float?
+  isCorrect     Boolean?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stock        Stock         @relation(fields: [stockId], references: [id])
+  dailyResults DailyResult[]
+
+  @@unique([userId, contestDate]) // ONE prediction per user per day
+  @@map("daily_predictions")
 }
+
+////////////////////////
+// AI DAILY PICK
+////////////////////////
+
+model AIPrediction {
+  id          String    @id @default(cuid())
+  stockId     String
+  contestDate DateTime
+  direction   Direction
+  confidence  Int // 0–100
+  reasoning   String
+  createdAt   DateTime  @default(now())
+
+  stock Stock @relation(fields: [stockId], references: [id])
+
+  @@unique([stockId, contestDate])
+  @@map("ai_predictions")
+}
+
+////////////////////////
+// DAILY RESULT (WINNER)
+////////////////////////
 
 model DailyResult {
-  id        String   @id @default(cuid())
-  date      DateTime @unique
-  winnerId  String
-  profitPct Float
+  id           String   @id @default(cuid())
+  contestDate  DateTime @unique
+  winnerUserId String
+  predictionId String
+  percentGain  Float
+  createdAt    DateTime @default(now())
 
-  winner User @relation("WinnerResults", fields: [winnerId], references: [id])
+  winner     User            @relation(fields: [winnerUserId], references: [id])
+  prediction DailyPrediction @relation(fields: [predictionId], references: [id])
+
+  reward Reward?
+
+  @@map("daily_results")
 }
+
+////////////////////////
+// PAYOUT / REWARD
+////////////////////////
+
+model Reward {
+  id            String       @id @default(cuid())
+  userId        String
+  dailyResultId String       @unique
+  amount        Int // 500
+  status        RewardStatus @default(PENDING)
+  paidAt        DateTime?
+
+  user        User        @relation(fields: [userId], references: [id])
+  dailyResult DailyResult @relation(fields: [dailyResultId], references: [id])
+
+  @@map("rewards")
+}
+
+////////////////////////
+// ENUMS
+////////////////////////
 
 enum Direction {
   UP
   DOWN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum RewardStatus {
+  PENDING
+  PAID
 }
