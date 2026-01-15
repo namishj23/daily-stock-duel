@@ -1,31 +1,14 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "Direction" AS ENUM ('UP', 'DOWN');
 
-  - You are about to drop the `DailyPrediction` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `DailyResult` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PAID', 'FAILED');
 
 -- CreateEnum
 CREATE TYPE "RewardStatus" AS ENUM ('PENDING', 'PAID');
 
--- DropForeignKey
-ALTER TABLE "DailyPrediction" DROP CONSTRAINT "DailyPrediction_userId_fkey";
-
--- DropForeignKey
-ALTER TABLE "DailyResult" DROP CONSTRAINT "DailyResult_winnerId_fkey";
-
--- DropTable
-DROP TABLE "DailyPrediction";
-
--- DropTable
-DROP TABLE "DailyResult";
-
--- DropTable
-DROP TABLE "User";
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -34,7 +17,9 @@ CREATE TABLE "users" (
     "email" TEXT,
     "image" TEXT,
     "ageConfirmed" BOOLEAN NOT NULL DEFAULT false,
+    "role" "Role" NOT NULL DEFAULT 'USER',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -73,6 +58,7 @@ CREATE TABLE "stocks" (
     "symbol" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "stocks_pkey" PRIMARY KEY ("id")
 );
@@ -84,8 +70,8 @@ CREATE TABLE "daily_predictions" (
     "stockId" TEXT NOT NULL,
     "direction" "Direction" NOT NULL,
     "justification" TEXT NOT NULL,
-    "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "contestDate" TIMESTAMP(3) NOT NULL,
+    "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lockedAt" TIMESTAMP(3),
     "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
     "paymentId" TEXT,
@@ -130,6 +116,7 @@ CREATE TABLE "rewards" (
     "amount" INTEGER NOT NULL,
     "status" "RewardStatus" NOT NULL DEFAULT 'PENDING',
     "paidAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "rewards_pkey" PRIMARY KEY ("id")
 );
@@ -154,6 +141,9 @@ CREATE UNIQUE INDEX "ai_predictions_stockId_contestDate_key" ON "ai_predictions"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "daily_results_contestDate_key" ON "daily_results"("contestDate");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "daily_results_predictionId_key" ON "daily_results"("predictionId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "rewards_dailyResultId_key" ON "rewards"("dailyResultId");

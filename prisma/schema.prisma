@@ -12,36 +12,38 @@ datasource db {
 ////////////////////////
 
 model User {
-  id           String   @id @default(cuid())
-  name         String?
-  email        String?  @unique
-  image        String?
-  ageConfirmed Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?  @unique
+  image         String?
+  ageConfirmed  Boolean  @default(false)
+  role          Role     @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  accounts Account[]
-  sessions Session[]
+  accounts      Account[]
+  sessions      Session[]
 
-  predictions  DailyPrediction[]
-  rewards      Reward[]
-  dailyResults DailyResult[]
+  predictions   DailyPrediction[]
+  rewards       Reward[]
+  dailyResults  DailyResult[]
 
   @@map("users")
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -65,13 +67,14 @@ model Session {
 ////////////////////////
 
 model Stock {
-  id       String  @id @default(cuid())
-  symbol   String  @unique // e.g. HDFCBANK
-  name     String // HDFC Bank Ltd
-  isActive Boolean @default(true)
+  id        String   @id @default(cuid())
+  symbol    String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
   predictions   DailyPrediction[]
-  aipredictions AIPrediction[]
+  aiPredictions AIPrediction[]
 
   @@map("stocks")
 }
@@ -86,40 +89,39 @@ model DailyPrediction {
   stockId       String
   direction     Direction
   justification String
-  submittedAt   DateTime  @default(now())
   contestDate   DateTime
+  submittedAt   DateTime  @default(now())
 
-  // Payment & lock state
   lockedAt      DateTime?
   paymentStatus PaymentStatus @default(PENDING)
   paymentId     String?
 
-  // Market evaluation
   entryPrice    Float?
   exitPrice     Float?
   percentChange Float?
   isCorrect     Boolean?
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stock        Stock         @relation(fields: [stockId], references: [id])
-  dailyResults DailyResult[]
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stock  Stock @relation(fields: [stockId], references: [id])
 
-  @@unique([userId, contestDate]) // ONE prediction per user per day
+  dailyResult DailyResult?
+
+  @@unique([userId, contestDate])
   @@map("daily_predictions")
 }
 
 ////////////////////////
-// AI DAILY PICK
+// AI DAILY PREDICTION
 ////////////////////////
 
 model AIPrediction {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   stockId     String
   contestDate DateTime
   direction   Direction
-  confidence  Int // 0–100
+  confidence  Int
   reasoning   String
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
   stock Stock @relation(fields: [stockId], references: [id])
 
@@ -132,12 +134,12 @@ model AIPrediction {
 ////////////////////////
 
 model DailyResult {
-  id           String   @id @default(cuid())
-  contestDate  DateTime @unique
-  winnerUserId String
-  predictionId String
-  percentGain  Float
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  contestDate    DateTime @unique
+  winnerUserId   String
+  predictionId   String   @unique
+  percentGain    Float
+  createdAt      DateTime @default(now())
 
   winner     User            @relation(fields: [winnerUserId], references: [id])
   prediction DailyPrediction @relation(fields: [predictionId], references: [id])
@@ -147,6 +149,7 @@ model DailyResult {
   @@map("daily_results")
 }
 
+
 ////////////////////////
 // PAYOUT / REWARD
 ////////////////////////
@@ -155,9 +158,10 @@ model Reward {
   id            String       @id @default(cuid())
   userId        String
   dailyResultId String       @unique
-  amount        Int // 500
+  amount        Int
   status        RewardStatus @default(PENDING)
   paidAt        DateTime?
+  createdAt     DateTime     @default(now())
 
   user        User        @relation(fields: [userId], references: [id])
   dailyResult DailyResult @relation(fields: [dailyResultId], references: [id])
@@ -183,4 +187,9 @@ enum PaymentStatus {
 enum RewardStatus {
   PENDING
   PAID
+}
+
+enum Role {
+  USER
+  ADMIN
 }
