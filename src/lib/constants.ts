@@ -54,11 +54,10 @@ export const NSE_TOP_100_STOCKS = [
 
 // Contest timing configuration (IST)
 export const CONTEST_TIMING = {
-  SUBMISSION_START: { hour: 9, minute: 0 }, // 9:00 AM IST
-  SUBMISSION_END: { hour: 9, minute: 30 }, // 9:30 AM IST
+  WINDOW_RESET: { hour: 8, minute: 30 }, // 8:30 AM IST - Daily window reset
   MARKET_OPEN: { hour: 9, minute: 15 }, // 9:15 AM IST
   MARKET_CLOSE: { hour: 15, minute: 30 }, // 3:30 PM IST
-  EVALUATION_TIME: { hour: 16, minute: 0 }, // 4:00 PM IST
+  RESULT_DECLARATION: { hour: 16, minute: 0 }, // 4:00 PM IST
 } as const;
 
 // Prize configuration
@@ -76,11 +75,12 @@ export const VALIDATION_RULES = {
 
 // Contest rules for display
 export const CONTEST_RULES = [
-  "One prediction per user per day",
-  "Predictions accepted between 9:00 AM - 9:30 AM IST",
-  "Select from NSE Top 100 stocks only",
-  "Minimum 50 words justification required",
-  "Winner determined by highest % gain in correct direction",
-  "Tie-breaker: earliest submission time",
+  "One prediction per user per day (editable anytime)",
+  "24-hour window: 8:30 AM to 8:30 AM next day",
+  "Predict for the next trading day's market",
+  "Select from any NSE listed stock",
+  "Edit your prediction anytime before window closes",
+  "Winner: closest prediction to actual % change",
+  "Tie-breaker: earliest final submission",
   "Must be 18+ years to participate",
 ] as const;

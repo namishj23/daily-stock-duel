@@ -1,105 +1,222 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { StockSelector } from "./StockSelector";
-import { DirectionSelector } from "./DirectionSelector";
-import { JustificationInput } from "./JustificationInput";
-import { Clock, Lock, AlertTriangle, CheckCircle } from "lucide-react";
-import { VALIDATION_RULES, CONTEST_TIMING } from "@/lib/constants";
-import { useToast } from "@/hooks/use-toast";
+'use client'
 
-function countWords(text: string): number {
-  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
-}
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { StockSelector } from './StockSelector'
+import { PredictionMeter } from './PredictionMeter'
+import { Clock, Lock, AlertTriangle, CheckCircle, CalendarX, RefreshCw } from 'lucide-react'
+import { CONTEST_TIMING } from '@/lib/constants'
+import { useToast } from '@/hooks/use-toast'
+import { isMarketOpen, getHolidayName, getNextTradingDay } from '@/lib/trading-holidays'
 
 function isWithinSubmissionWindow(): boolean {
-  const now = new Date();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const currentTime = hours * 60 + minutes;
-  
-  const startTime = CONTEST_TIMING.SUBMISSION_START.hour * 60 + CONTEST_TIMING.SUBMISSION_START.minute;
-  const endTime = CONTEST_TIMING.SUBMISSION_END.hour * 60 + CONTEST_TIMING.SUBMISSION_END.minute;
-  
-  // For demo purposes, always return true
-  // In production: return currentTime >= startTime && currentTime <= endTime;
-  return true;
+  // Time constraint removed - predictions allowed anytime
+  return true
+}
+
+function getPredictionDay(): { day: string, closesAt: string, isHoliday: boolean, holidayName: string | null } {
+  const now = new Date()
+  const istOffset = 5.5 * 60 * 60 * 1000
+  const istTime = new Date(now.getTime() + istOffset)
+
+  const hours = istTime.getUTCHours()
+  const minutes = istTime.getUTCMinutes()
+
+  // Calculate prediction date in IST
+  let predictionDate = new Date(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate())
+
+  // If after 8:30 AM IST, predict for tomorrow
+  if (hours > 8 || (hours === 8 && minutes >= 30)) {
+    predictionDate.setDate(predictionDate.getDate() + 1)
+  }
+
+  // Check if it's a trading day, if not get next trading day
+  if (!isMarketOpen(predictionDate)) {
+    predictionDate = getNextTradingDay(predictionDate)
+  }
+
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const day = daysOfWeek[predictionDate.getDay()]
+
+  // Window closes next day at 8:30 AM
+  const closesDate = new Date(predictionDate)
+  closesDate.setDate(closesDate.getDate() + 1)
+  const closesDay = daysOfWeek[closesDate.getDay()]
+
+  // Check if original date (before skipping weekends/holidays) was a holiday/weekend
+  let originalDate = new Date(istTime.getUTCFullYear(), istTime.getUTCMonth(), istTime.getUTCDate())
+  if (hours > 8 || (hours === 8 && minutes >= 30)) {
+    originalDate.setDate(originalDate.getDate() + 1)
+  }
+  const isHoliday = !isMarketOpen(originalDate)
+  const holidayName = getHolidayName(originalDate)
+
+  return { day, closesAt: `${closesDay} 8:30 AM`, isHoliday, holidayName }
 }
 
 export function PredictionForm() {
-  const [stock, setStock] = useState("");
-  const [direction, setDirection] = useState<"UP" | "DOWN" | null>(null);
-  const [justification, setJustification] = useState("");
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const { toast } = useToast();
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [stock, setStock] = useState('')
+  const [stockId, setStockId] = useState('')
+  const [predictedChange, setPredictedChange] = useState(0)
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [existingPrediction, setExistingPrediction] = useState<any>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const { toast } = useToast()
 
-  const wordCount = countWords(justification);
-  const isValid = stock && direction && wordCount >= VALIDATION_RULES.MIN_JUSTIFICATION_WORDS && ageConfirmed;
-  const canSubmit = isValid && isWithinSubmissionWindow() && !isSubmitted;
+  // Check if user has already submitted today
+  useEffect(() => {
+    async function checkExistingPrediction() {
+      if (session?.user) {
+        try {
+          const res = await fetch('/api/predictions')
+          if (res.ok) {
+            const data = await res.json()
+            if (data.prediction) {
+              setExistingPrediction(data.prediction)
+              // Pre-fill form with existing prediction
+              setStock(data.prediction.stock?.symbol || '')
+              setStockId(data.prediction.stockId || '')
+              setPredictedChange(data.prediction.predictedChange || 0)
+              setAgeConfirmed(true) // Already confirmed when first submitted
+            }
+          }
+        } catch (error) {
+          console.error('Failed to check prediction:', error)
+        }
+      }
+    }
+    checkExistingPrediction()
+  }, [session])
+
+  const isValid = stock && stockId && predictedChange !== 0 && ageConfirmed
+  const canSubmit = isValid && isWithinSubmissionWindow()
+
+  // Check if values have changed from existing prediction
+  const hasChanges = existingPrediction ? (
+    stockId !== existingPrediction.stockId ||
+    predictedChange !== existingPrediction.predictedChange
+  ) : true
+
+  const handleStockChange = (symbol: string, id: string) => {
+    setStock(symbol)
+    setStockId(id)
+    if (existingPrediction) setIsEditing(true)
+  }
+
+  const handlePredictionChange = (value: number) => {
+    setPredictedChange(value)
+    if (existingPrediction) setIsEditing(true)
+  }
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit) return
 
-    setIsSubmitting(true);
-    
-    // Simulate API call - will be replaced with real backend
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    toast({
-      title: "Prediction Submitted! 🎯",
-      description: `Your ${direction} prediction for ${stock} has been locked in.`,
-    });
-  };
+    if (status !== 'authenticated') {
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to submit a prediction',
+        variant: 'destructive',
+      })
+      router.push('/signin')
+      return
+    }
 
-  if (isSubmitted) {
-    return (
-      <div className="p-8 rounded-2xl bg-card border border-success/30 text-center">
-        <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-success" />
-        </div>
-        <h3 className="text-xl font-bold mb-2">Prediction Locked!</h3>
-        <p className="text-muted-foreground mb-4">
-          Your {direction} prediction for <span className="font-mono font-bold">{stock}</span> has been submitted.
-        </p>
-        <div className="p-4 rounded-xl bg-accent/50 text-sm text-muted-foreground">
-          <p>Results will be announced after market close at 3:30 PM IST.</p>
-          <p className="mt-2">Winner declared at 4:00 PM IST.</p>
-        </div>
-      </div>
-    );
+    setIsSubmitting(true)
+
+    try {
+      const res = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stockId,
+          predictedChange,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        toast({
+          title: 'Submission failed',
+          description: data.error || 'Something went wrong',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      setExistingPrediction(data.prediction)
+      setIsEditing(false)
+
+      toast({
+        title: existingPrediction ? 'Prediction Updated! 🎯' : 'Prediction Submitted! 🎯',
+        description: `Your ${predictedChange > 0 ? '+' : ''}${predictedChange}% prediction for ${stock} has been ${existingPrediction ? 'updated' : 'locked in'}.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to submit prediction. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="space-y-8">
-      {/* Submission Window Status */}
-      <div className={`p-4 rounded-xl flex items-center gap-3 ${
-        isWithinSubmissionWindow() 
-          ? "bg-success/10 border border-success/30" 
-          : "bg-warning/10 border border-warning/30"
-      }`}>
-        {isWithinSubmissionWindow() ? (
-          <>
-            <Clock className="w-5 h-5 text-success" />
-            <div>
-              <span className="font-medium text-success">Submission Window Open</span>
-              <span className="text-sm text-muted-foreground ml-2">9:00 AM - 9:30 AM IST</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <Lock className="w-5 h-5 text-warning" />
-            <div>
-              <span className="font-medium text-warning">Submissions Closed</span>
-              <span className="text-sm text-muted-foreground ml-2">Opens tomorrow at 9:00 AM IST</span>
-            </div>
-          </>
-        )}
+      {/* Existing Prediction Banner */}
+      {existingPrediction && (
+        <div className="p-4 rounded-xl flex items-center gap-3 bg-success/10 border border-success/30">
+          <CheckCircle className="w-5 h-5 text-success" />
+          <div className="flex-1">
+            <div className="font-medium">Current Prediction: <span className={existingPrediction.predictedChange > 0 ? 'text-success' : 'text-warning'}>{existingPrediction.predictedChange > 0 ? '+' : ''}{existingPrediction.predictedChange}%</span> on {existingPrediction.stock?.symbol}</div>
+            <div className="text-sm text-muted-foreground">You can modify your prediction until the window closes</div>
+          </div>
+        </div>
+      )}
+
+      {/* Prediction Info Banner */}
+      <div className="p-4 rounded-xl flex items-center gap-3 bg-primary/10 border border-primary/30">
+        <Clock className="w-5 h-5 text-primary" />
+        <div className="flex-1">
+          <div className="font-medium">Predicting for {getPredictionDay().day}'s Market</div>
+          <div className="text-sm text-muted-foreground">Window closes at {getPredictionDay().closesAt} IST</div>
+        </div>
       </div>
+
+      {/* Holiday/Weekend Warning */}
+      {getPredictionDay().isHoliday && (
+        <div className="p-4 rounded-xl flex items-center gap-3 bg-warning/10 border border-warning/30">
+          <CalendarX className="w-5 h-5 text-warning" />
+          <div className="flex-1">
+            <div className="font-medium text-warning">
+              {getPredictionDay().holidayName ? 'Trading Holiday' : 'Weekend - Market Closed'}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {getPredictionDay().holidayName
+                ? `${getPredictionDay().holidayName} - Predicting for next trading day instead`
+                : 'Market closed on weekends - Predicting for next trading day instead'
+              }
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auth check */}
+      {status === 'unauthenticated' && (
+        <div className="p-4 rounded-xl bg-primary/10 border border-primary/30 text-center">
+          <p className="text-sm mb-2">You need to sign in to submit a prediction</p>
+          <Button variant="outline" size="sm" onClick={() => router.push('/signin')}>
+            Sign In
+          </Button>
+        </div>
+      )}
 
       {/* Step 1: Stock Selection */}
       <div className="space-y-3">
@@ -107,25 +224,23 @@ export function PredictionForm() {
           <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</span>
           Select Stock
         </label>
-        <StockSelector value={stock} onChange={setStock} />
+        <StockSelector value={stock} onChange={handleStockChange} />
       </div>
 
-      {/* Step 2: Direction */}
+      {/* Step 2: Prediction Meter */}
       <div className="space-y-3">
         <label className="text-sm font-medium flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</span>
-          Predict Direction
+          Predict Price Change
         </label>
-        <DirectionSelector value={direction} onChange={setDirection} />
-      </div>
-
-      {/* Step 3: Justification */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</span>
-          Your Analysis <span className="text-muted-foreground font-normal">(min {VALIDATION_RULES.MIN_JUSTIFICATION_WORDS} words)</span>
-        </label>
-        <JustificationInput value={justification} onChange={setJustification} />
+        <div className="p-6 rounded-xl bg-accent/30 border border-border/50">
+          <PredictionMeter value={predictedChange} onChange={handlePredictionChange} />
+        </div>
+        {predictedChange === 0 && (
+          <p className="text-xs text-muted-foreground text-center">
+            Drag the slider or click a preset to make your prediction
+          </p>
+        )}
       </div>
 
       {/* Age Confirmation */}
@@ -137,18 +252,18 @@ export function PredictionForm() {
           className="mt-0.5"
         />
         <label htmlFor="age-confirm" className="text-sm text-muted-foreground cursor-pointer">
-          I confirm that I am {VALIDATION_RULES.MIN_AGE} years or older and I understand that this is a skill-based contest. 
-          I have read and agree to the <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a> and{" "}
+          I confirm that I am 18 years or older and I understand that this is a skill-based contest.
+          I have read and agree to the <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a> and{' '}
           <a href="/disclaimer" className="text-primary hover:underline">Disclaimer</a>.
         </label>
       </div>
 
-      {/* Warning */}
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/5 border border-warning/20 text-sm">
-        <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+      {/* Info */}
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20 text-sm">
+        <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
         <p className="text-muted-foreground">
-          Once submitted, your prediction <strong className="text-foreground">cannot be changed</strong>. 
-          Make sure you've reviewed your selection before submitting.
+          You can <strong className="text-foreground">edit your prediction anytime</strong> before the window closes.
+          Your latest submission will be used for the contest.
         </p>
       </div>
 
@@ -157,13 +272,18 @@ export function PredictionForm() {
         variant="hero"
         size="xl"
         className="w-full"
-        disabled={!canSubmit || isSubmitting}
+        disabled={!canSubmit || isSubmitting || status !== 'authenticated' || (existingPrediction && !hasChanges)}
         onClick={handleSubmit}
       >
         {isSubmitting ? (
           <>
             <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            Submitting...
+            {existingPrediction ? 'Updating...' : 'Submitting...'}
+          </>
+        ) : existingPrediction ? (
+          <>
+            <RefreshCw className="w-5 h-5" />
+            {hasChanges ? 'Update Prediction' : 'No Changes to Update'}
           </>
         ) : (
           <>
@@ -173,5 +293,5 @@ export function PredictionForm() {
         )}
       </Button>
     </div>
-  );
+  )
 }

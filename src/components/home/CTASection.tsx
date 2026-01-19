@@ -1,18 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Button } from '@/components/ui/button'
+import { ArrowRight, Sparkles } from 'lucide-react'
+import Link from 'next/link'
 
 export function CTASection() {
   return (
     <section className="py-24 relative overflow-hidden">
       {/* Background glow */}
       <div className="absolute inset-0 hero-glow opacity-50" />
-      
+
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 mb-6">
             <Sparkles className="w-4 h-4 text-secondary" />
-            <span className="text-sm font-medium text-secondary">New contest starts every morning</span>
+            <span className="text-sm font-medium text-secondary">24hr window • Edit anytime • Win daily</span>
           </div>
 
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
@@ -26,7 +26,7 @@ export function CTASection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/predict">
+            <Link href="/predict">
               <Button variant="hero" size="xl" className="w-full sm:w-auto">
                 Start Predicting Now
                 <ArrowRight className="w-5 h-5" />
@@ -40,5 +40,5 @@ export function CTASection() {
         </div>
       </div>
     </section>
-  );
+  )
 }

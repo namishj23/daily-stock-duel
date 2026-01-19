@@ -84,13 +84,13 @@ model Stock {
 ////////////////////////
 
 model DailyPrediction {
-  id            String    @id @default(cuid())
-  userId        String
-  stockId       String
-  direction     Direction
-  justification String
-  contestDate   DateTime
-  submittedAt   DateTime  @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  stockId         String
+  predictedChange Float     @default(0) // User's predicted % change (-20 to +20)
+  justification   String?   // Optional analysis text
+  contestDate     DateTime
+  submittedAt     DateTime  @default(now())
 
   lockedAt      DateTime?
   paymentStatus PaymentStatus @default(PENDING)

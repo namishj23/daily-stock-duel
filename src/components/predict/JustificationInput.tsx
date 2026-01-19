@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -39,9 +41,9 @@ export function JustificationInput({ value, onChange }: JustificationInputProps)
         </p>
         <div className={cn(
           "font-mono px-2 py-1 rounded-md transition-colors",
-          isValid 
-            ? "bg-success/10 text-success" 
-            : wordCount > 0 
+          isValid
+            ? "bg-success/10 text-success"
+            : wordCount > 0
               ? "bg-warning/10 text-warning"
               : "text-muted-foreground"
         )}>
