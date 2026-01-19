@@ -18,7 +18,7 @@ export function PredictionMeter({ value, onChange }: PredictionMeterProps) {
         const rect = sliderRef.current.getBoundingClientRect()
         const x = clientX - rect.left
         const percentage = (x / rect.width) * 40 - 20 // Convert to -20 to +20 range
-        return Math.round(Math.max(-20, Math.min(20, percentage)))
+        return Math.max(-20, Math.min(20, Math.round(percentage * 100) / 100))
     }, [])
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -62,6 +62,32 @@ export function PredictionMeter({ value, onChange }: PredictionMeterProps) {
         }
     }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove])
 
+    const [inputValue, setInputValue] = useState(value.toString())
+
+    // Update input value when prop value changes (from slider or presets)
+    useEffect(() => {
+        if (!isDragging) {
+            setInputValue(value === 0 ? '0' : value.toString())
+        }
+    }, [value, isDragging])
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value
+        setInputValue(val)
+
+        const numericVal = parseFloat(val)
+        if (!isNaN(numericVal)) {
+            // Apply bounds and precision
+            const boundedVal = Math.max(-20, Math.min(20, Math.round(numericVal * 100) / 100))
+            onChange(boundedVal)
+        }
+    }
+
+    const handleInputBlur = () => {
+        // Reset to prop value on blur to clean up invalid strings (like "5.")
+        setInputValue(value.toString())
+    }
+
     // Calculate position (0 = -20%, 100 = +20%)
     const position = ((value + 20) / 40) * 100
 
@@ -89,13 +115,37 @@ export function PredictionMeter({ value, onChange }: PredictionMeterProps) {
 
     return (
         <div className="space-y-6">
-            {/* Current Value Display */}
+            {/* Current Value Display / Editable Input */}
             <div className="text-center">
-                <div className={cn(
-                    "text-5xl font-bold mono transition-colors",
-                    getColor()
-                )}>
-                    {value > 0 ? '+' : ''}{value}%
+                <div className="inline-flex items-center justify-center relative group">
+                    <span className={cn(
+                        "text-5xl font-bold mono transition-colors",
+                        value > 0 ? "text-success" : "text-transparent"
+                    )}>
+                        +
+                    </span>
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        onBlur={handleInputBlur}
+                        className={cn(
+                            "w-[4.5ch] bg-transparent text-5xl font-bold mono text-center focus:outline-none transition-colors border-b-2 border-transparent focus:border-primary/30 mx-[-0.5ch]",
+                            getColor()
+                        )}
+                        placeholder="0"
+                    />
+                    <span className={cn(
+                        "text-5xl font-bold mono transition-colors",
+                        getColor()
+                    )}>
+                        %
+                    </span>
+
+                    {/* Tooltip hint */}
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        Click to type percentage
+                    </div>
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
                     {value > 0 ? 'Bullish' : value < 0 ? 'Bearish' : 'Neutral'} Prediction

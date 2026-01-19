@@ -155,7 +155,7 @@ export function PredictionForm() {
 
       toast({
         title: existingPrediction ? 'Prediction Updated! 🎯' : 'Prediction Submitted! 🎯',
-        description: `Your ${predictedChange > 0 ? '+' : ''}${predictedChange}% prediction for ${stock} has been ${existingPrediction ? 'updated' : 'locked in'}.`,
+        description: `Your ${predictedChange > 0 ? '+' : ''}${Number(predictedChange).toFixed(2)}% prediction for ${stock} has been ${existingPrediction ? 'updated' : 'locked in'}.`,
       })
     } catch (error) {
       toast({
@@ -175,7 +175,7 @@ export function PredictionForm() {
         <div className="p-4 rounded-xl flex items-center gap-3 bg-success/10 border border-success/30">
           <CheckCircle className="w-5 h-5 text-success" />
           <div className="flex-1">
-            <div className="font-medium">Current Prediction: <span className={existingPrediction.predictedChange > 0 ? 'text-success' : 'text-warning'}>{existingPrediction.predictedChange > 0 ? '+' : ''}{existingPrediction.predictedChange}%</span> on {existingPrediction.stock?.symbol}</div>
+            <div className="font-medium">Current Prediction: <span className={existingPrediction.predictedChange > 0 ? 'text-success' : 'text-warning'}>{existingPrediction.predictedChange > 0 ? '+' : ''}{Number(existingPrediction.predictedChange).toFixed(2)}%</span> on {existingPrediction.stock?.symbol}</div>
             <div className="text-sm text-muted-foreground">You can modify your prediction until the window closes</div>
           </div>
         </div>

@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
             name: pred.user.name || 'Anonymous',
             image: pred.user.image,
             stock: pred.stock.symbol,
-            direction: pred.direction,
+            predictedChange: pred.predictedChange,
             percentChange: pred.percentChange,
             submittedAt: pred.submittedAt.toISOString(),
         }))
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
                 personalRank = {
                     rank: userPrediction.isCorrect ? higherRanked + 1 : null,
                     stock: userPrediction.stock.symbol,
-                    direction: userPrediction.direction,
+                    predictedChange: userPrediction.predictedChange,
                     percentChange: userPrediction.percentChange,
                     isCorrect: userPrediction.isCorrect,
                     submittedAt: userPrediction.submittedAt.toISOString(),
