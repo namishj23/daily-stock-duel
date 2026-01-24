@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateResults } from '@/lib/calculate-results'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 // POST - Calculate results for a specific contest date (Admin only)
 export async function POST(request: NextRequest): Promise<NextResponse> {
     try {

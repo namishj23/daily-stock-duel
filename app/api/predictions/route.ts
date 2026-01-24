@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma'
 import { CONTEST_TIMING } from '@/lib/constants'
 import { isMarketOpen, getHolidayName, getNextTradingDay } from '@/lib/trading-holidays'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 function isWithinSubmissionWindow(): boolean {
     // Time constraint removed - predictions allowed anytime
     return true
