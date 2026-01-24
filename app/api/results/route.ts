@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { calculateResults } from '@/lib/calculate-results'
 
 // POST - Calculate results for a specific contest date (Admin only)
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const session = await getServerSession(authOptions)
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET - Get results for a specific contest date
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         const { searchParams } = new URL(request.url)
         const contestDate = searchParams.get('date')
