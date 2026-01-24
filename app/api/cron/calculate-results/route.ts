@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { calculateResults } from '@/lib/calculate-results'
 import { getContestDateForCalculation, shouldCalculateResults } from '@/lib/trading-calendar'
 
-// Force dynamic rendering - this route uses request.headers
+// Vercel runtime configuration
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 /**
  * Automated cron endpoint for daily result calculation
