@@ -68,13 +68,22 @@ export const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async signIn({ user, account, profile }) {
-            // Allow all sign-ins
+            // For Google sign-in, ensure age confirmation is set
+            if (account?.provider === 'google' && user.id) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { ageConfirmed: true },
+                })
+            }
             return true
         },
         async redirect({ url, baseUrl }) {
-            // Redirect to predict page after sign-in
-            if (url.startsWith('/')) return `${baseUrl}${url}`
-            if (url.startsWith(baseUrl)) return url
+            // Always redirect to /predict after sign-in
+            // If url is already /predict or starts with baseUrl/predict, use it
+            if (url === '/predict' || url === `${baseUrl}/predict`) {
+                return url.startsWith('/') ? `${baseUrl}${url}` : url
+            }
+            // For any sign-in, redirect to /predict
             return `${baseUrl}/predict`
         },
         async jwt({ token, user, account }) {
