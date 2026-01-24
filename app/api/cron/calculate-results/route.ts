@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { calculateResults } from '../../results/route'
+import { calculateResults } from '@/lib/calculate-results'
 import { getContestDateForCalculation, shouldCalculateResults } from '@/lib/trading-calendar'
 
 /**
