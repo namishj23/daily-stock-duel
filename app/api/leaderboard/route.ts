@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 function getContestDate(): Date {
     const now = new Date()
     const istOffset = 5.5 * 60 * 60 * 1000
