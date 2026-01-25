@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TrendingUp, Eye, EyeOff } from 'lucide-react'
@@ -17,6 +17,14 @@ export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false)
     const router = useRouter()
     const { toast } = useToast()
+    const { data: session, status } = useSession()
+
+    // Redirect to /predict if already authenticated
+    useEffect(() => {
+        if (status === 'authenticated' && session) {
+            router.push('/predict')
+        }
+    }, [session, status, router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
