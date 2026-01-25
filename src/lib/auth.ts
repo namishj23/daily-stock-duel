@@ -78,12 +78,12 @@ export const authOptions: NextAuthOptions = {
             return true
         },
         async redirect({ url, baseUrl }) {
-            // Always redirect to /predict after sign-in
-            // If url is already /predict or starts with baseUrl/predict, use it
-            if (url === '/predict' || url === `${baseUrl}/predict`) {
-                return url.startsWith('/') ? `${baseUrl}${url}` : url
+            // For Google OAuth, always redirect to /predict
+            // The callbackUrl parameter will be in the url
+            if (url.includes('/predict')) {
+                return `${baseUrl}/predict`
             }
-            // For any sign-in, redirect to /predict
+            // Default: always go to /predict after authentication
             return `${baseUrl}/predict`
         },
         async jwt({ token, user, account }) {
