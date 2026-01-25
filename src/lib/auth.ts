@@ -70,10 +70,15 @@ export const authOptions: NextAuthOptions = {
         async signIn({ user, account, profile }) {
             // For Google sign-in, ensure age confirmation is set
             if (account?.provider === 'google' && user.id) {
-                await prisma.user.update({
-                    where: { id: user.id },
-                    data: { ageConfirmed: true },
-                })
+                try {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { ageConfirmed: true },
+                    })
+                } catch (error) {
+                    // User may not exist yet (first sign-in), ignore error
+                    console.log('Could not update ageConfirmed, user may be new')
+                }
             }
             return true
         },

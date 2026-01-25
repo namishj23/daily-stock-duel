@@ -4,8 +4,10 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { calculateResults } from '@/lib/calculate-results'
 
-// Force dynamic rendering
+// Vercel runtime configuration
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 // POST - Calculate results for a specific contest date (Admin only)
 export async function POST(request: NextRequest): Promise<NextResponse> {

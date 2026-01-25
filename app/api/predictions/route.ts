@@ -5,8 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { CONTEST_TIMING } from '@/lib/constants'
 import { isMarketOpen, getHolidayName, getNextTradingDay } from '@/lib/trading-holidays'
 
-// Force dynamic rendering
+// Vercel runtime configuration
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 function isWithinSubmissionWindow(): boolean {
     // Time constraint removed - predictions allowed anytime
