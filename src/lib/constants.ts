@@ -78,7 +78,7 @@ export const CONTEST_RULES = [
   "One prediction per user per day (editable anytime)",
   "24-hour window: 8:30 AM to 8:30 AM next day",
   "Predict for the next trading day's market",
-  "Select from any NSE listed stock",
+  "Select from any NSE listed stock or ETF",
   "Edit your prediction anytime before window closes",
   "Winner: closest prediction to actual % change",
   "Tie-breaker: earliest final submission",

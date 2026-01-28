@@ -29,7 +29,7 @@ export function HeroSection() {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            India's premier skill-based stock prediction contest. Pick the best performing NSE stock every day and win{' '}
+            India's premier skill-based stock prediction contest. Pick the best performing NSE stock or ETF every day and win{' '}
             <span className="text-gradient-gold font-bold">
               {PRIZE_CONFIG.CURRENCY_SYMBOL}{PRIZE_CONFIG.DAILY_PRIZE}
             </span>{' '}

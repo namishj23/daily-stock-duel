@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed:nse": "ts-node prisma/seed/stocks_nse.ts",
+    "seed:etf": "ts-node prisma/seed/stocks_etf.ts",
     "seed": "ts-node prisma/seed.ts",
     "cleanup": "ts-node prisma/cleanup-test-users.ts",
     "db:push": "prisma db push",

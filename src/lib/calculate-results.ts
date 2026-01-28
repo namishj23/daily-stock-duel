@@ -7,7 +7,8 @@ import { fetchStockData, calculatePercentChange } from './stock-prices'
  */
 export async function calculateResults(contestDate: Date) {
     const date = new Date(contestDate)
-    date.setHours(0, 0, 0, 0)
+    // Use UTC midnight to match database records
+    date.setUTCHours(0, 0, 0, 0)
 
     // Fetch all predictions for this contest date
     const predictions = await prisma.dailyPrediction.findMany({

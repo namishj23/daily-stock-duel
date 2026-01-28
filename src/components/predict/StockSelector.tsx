@@ -21,8 +21,8 @@ interface StockSelectorProps {
   onChange: (value: string, stockId: string) => void
 }
 
-// Popular stocks to show at top when no search
-const POPULAR_SYMBOLS = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'SBIN', 'ITC', 'BHARTIARTL']
+// Popular stocks and ETFs to show at top when no search
+const POPULAR_SYMBOLS = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'SBIN', 'NIFTYBEES', 'BANKBEES', 'GOLDBEES']
 
 export function StockSelector({ value, onChange }: StockSelectorProps) {
   const [open, setOpen] = useState(false)
@@ -236,11 +236,11 @@ export function StockSelector({ value, onChange }: StockSelectorProps) {
                 </div>
               )}
 
-              {/* All Stocks */}
+              {/* All Securities */}
               <div>
                 <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   <TrendingUp className="w-3 h-3" />
-                  All NSE Stocks ({otherStocks.length})
+                  All Securities ({otherStocks.length})
                 </div>
                 <div className="space-y-1">
                   {otherStocks.map(stock => (
