@@ -17,8 +17,8 @@
     --popover: 222 47% 10%;
     --popover-foreground: 210 40% 98%;
 
-    /* Emerald/Teal primary - trustworthy financial feel */
-    --primary: 160 84% 39%;
+    /* Natural green primary - trustworthy financial feel */
+    --primary: 130 55% 40%;
     --primary-foreground: 222 47% 6%;
 
     /* Muted gold secondary - premium accent */
@@ -35,7 +35,7 @@
     --destructive-foreground: 210 40% 98%;
 
     /* Success/Bullish green */
-    --success: 142 76% 36%;
+    --success: 130 55% 40%;
     --success-foreground: 210 40% 98%;
 
     /* Warning/Bearish red */
@@ -44,28 +44,28 @@
 
     --border: 222 30% 18%;
     --input: 222 30% 14%;
-    --ring: 160 84% 39%;
+    --ring: 130 55% 40%;
 
     --radius: 0.75rem;
 
     /* Sidebar tokens */
     --sidebar-background: 222 47% 5%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary: 130 55% 40%;
     --sidebar-primary-foreground: 222 47% 6%;
     --sidebar-accent: 222 30% 12%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 222 30% 15%;
-    --sidebar-ring: 160 84% 39%;
+    --sidebar-ring: 130 55% 40%;
 
     /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(160 84% 39%), hsl(172 66% 50%));
+    --gradient-primary: linear-gradient(135deg, hsl(130 55% 40%), hsl(140 50% 45%));
     --gradient-gold: linear-gradient(135deg, hsl(43 74% 49%), hsl(38 92% 50%));
     --gradient-dark: linear-gradient(180deg, hsl(222 47% 8%), hsl(222 47% 4%));
-    --gradient-glow: radial-gradient(ellipse at center, hsl(160 84% 39% / 0.15), transparent 70%);
+    --gradient-glow: radial-gradient(ellipse at center, hsl(130 55% 40% / 0.15), transparent 70%);
     
     /* Shadows */
-    --shadow-glow: 0 0 40px -10px hsl(160 84% 39% / 0.4);
+    --shadow-glow: 0 0 40px -10px hsl(130 55% 40% / 0.4);
     --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.4);
     --shadow-elevated: 0 8px 40px -8px hsl(0 0% 0% / 0.5);
   }
@@ -93,7 +93,7 @@
 
   /* Custom selection color */
   ::selection {
-    background: hsl(160 84% 39% / 0.3);
+    background: hsl(130 55% 40% / 0.3);
     color: hsl(210 40% 98%);
   }
 }
