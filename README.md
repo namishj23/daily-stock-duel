@@ -1,4 +1,4 @@
-# StockPredict - Daily Stock Prediction Contest
+# StockPredict - Daily Stock Prediction Contest (v1.0.2)
 
 A Next.js web application where users predict daily stock price changes and compete for prizes.
 
