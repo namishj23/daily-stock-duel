@@ -26,7 +26,6 @@ export default function RootLayout({
                         <Toaster />
                         <Sonner />
                         {children}
-                        <div style={{ display: 'none' }} data-build-id="v1.0.1" />
                     </TooltipProvider>
                 </Providers>
             </body>
