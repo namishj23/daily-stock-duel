@@ -1,0 +1,12 @@
+{
+  "users": [
+    { "id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "USER" },
+    { "id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": "USER" },
+    { "id": 3, "name": "Charlie Davis", "email": "charlie@example.com", "role": "ADMIN" }
+  ],
+  "stocks": [
+    { "symbol": "AAPL", "name": "Apple Inc.", "price": 175.50 },
+    { "symbol": "GOOGL", "name": "Alphabet Inc.", "price": 2800.75 },
+    { "symbol": "MSFT", "name": "Microsoft Corp.", "price": 340.20 }
+  ]
+}
